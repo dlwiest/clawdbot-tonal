@@ -1,0 +1,20 @@
+{
+  "name": "clawdbot-tonal",
+  "version": "1.0.0",
+  "description": "Clawdbot skill for talking to your Tonal",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/tonal.mjs"
+  },
+  "keywords": [
+    "clawdbot",
+    "tonal",
+    "fitness",
+    "workout"
+  ],
+  "author": "dlwiest",
+  "license": "ISC",
+  "dependencies": {
+    "@dlwiest/ts-tonal-client": "^0.1.1"
+  }
+}
