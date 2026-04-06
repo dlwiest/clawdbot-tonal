@@ -55,6 +55,37 @@ Based on muscle readiness:
 
 ## Creating Workouts
 
+### Using movement metadata to build better workout blocks
+
+When creating multi-exercise blocks, do **not** infer compatibility from movement names alone. Tonal movement objects expose setup metadata that can help you group exercises more intelligently.
+
+Useful fields in `onMachineInfo` include:
+- `armAngle` → Low / Middle / High
+- `cartHeight` → Low / Middle / High
+- `accessory` → Handles / Rope / StraightBar / etc.
+- `spotterDisabled`, `burnoutDisabled`, `chainsDisabled`, `eccentricDisabled`, `smartFlexDisabled`, `autoWeightOffDisabled`
+
+A practical block-building order of operations is:
+1. Prefer easy setup handling within the block
+2. Prefer matching `accessory`
+3. Prefer matching `baseOfSupport` when practical
+4. Use `armAngle` and `cartHeight` as strong guides
+5. Then, if possible, alternate muscle groups within the block
+
+To inspect the raw movement object directly, use:
+```bash
+node scripts/tonal.mjs movement-json "Movement Name"
+```
+
+### Rep note for alternating movements
+
+For alternating movements, Tonal treats prescribed reps as **total reps**, not per-side reps.
+If the programming intent is 10 reps per side, set **20 total reps**.
+
+### Note for future mode support
+
+Before applying modes like burnout, spotter, chains, eccentric, or smart flex automatically, inspect the movement metadata to see whether Tonal exposes those modes as disabled for that movement.
+
 JSON format for `create` command:
 ```json
 {
