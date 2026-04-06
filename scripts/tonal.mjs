@@ -374,6 +374,18 @@ async function cmdSearch(query) {
   if (filtered.length > 20) console.log(`\n_(and ${filtered.length - 20} more...)_`);
 }
 
+async function cmdMovementJson(name) {
+  const client = await getClient();
+  const movements = await client.getMovements();
+  const movement = movements.find(m => m.name.toLowerCase() === (name || '').toLowerCase());
+
+  if (!movement) {
+    throw new Error(`Movement "${name}" not found. Use 'search' to find valid names.`);
+  }
+
+  console.log(JSON.stringify(movement, null, 2));
+}
+
 async function cmdCreate(jsonFile) {
   if (!jsonFile) {
     console.log(`# Create Workout\n`);
@@ -545,6 +557,7 @@ const commands = {
   details: () => cmdWorkoutDetails(args.join(' ')),
   movements: () => cmdMovements(args[0]),
   search: () => cmdSearch(args.join(' ')),
+  'movement-json': () => cmdMovementJson(args.join(' ')),
   create: () => cmdCreate(args[0]),
   edit: () => cmdEdit(args.join(' ')),
   update: () => cmdUpdate(args[0], args[1]),
@@ -567,6 +580,7 @@ Commands:
   details "Name"      Show workout structure
   movements [groups]  Browse movements (e.g., "Chest,Back")
   search <query>      Search movements by name/muscle/family
+  movement-json <n>   Show raw movement JSON for exact movement name
   create <file.json>  Create workout from JSON
   edit "Name"         Export workout to JSON for editing
   update "Name" <f>   Update workout from JSON file
