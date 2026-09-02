@@ -5,15 +5,6 @@ description: Access Tonal workout data (muscle readiness, workout history, stats
 
 # Tonal Integration
 
-> **DEPRECATED — do not use this skill to create or edit workouts.**
-> `scripts/tonal.mjs` silently corrupts custom workouts: editing one flattens
-> per-set rep/weight ramps and erases warmUp/dropSet/burnout flags and set
-> descriptions, and using the same movement twice in one block deletes half the
-> sets. Both are fixed in
-> [`ts-tonal-mcp`](https://github.com/dlwiest/ts-tonal-mcp) and
-> [`hermes-tonal`](https://github.com/dlwiest/hermes-tonal). The read-only
-> commands (readiness, stats, workouts, movements) are unaffected.
-
 Full port of ts-tonal-mcp functionality. Fetch fitness metrics, manage workouts, browse movements.
 
 ## Quick Reference
@@ -95,25 +86,68 @@ If the programming intent is 10 reps per side, set **20 total reps**.
 
 Before applying modes like burnout, spotter, chains, eccentric, or smart flex automatically, inspect the movement metadata to see whether Tonal exposes those modes as disabled for that movement.
 
-JSON format for `create` command:
+Workout files for `create` and `update` use this JSON format:
+
 ```json
 {
   "title": "Push Day",
-  "description": "Chest and triceps focus",
+  "description": "Chest and triceps",
   "exercises": [
     { "movementName": "Bench Press", "sets": 4, "reps": 8, "weight": 80 },
-    { "movementName": "Incline Chest Press", "sets": 3, "reps": 10 },
     { "movementName": "Tricep Pushdown", "sets": 3, "reps": 12, "block": 2 },
-    { "movementName": "Overhead Tricep Extension", "sets": 3, "reps": 12, "block": 2 }
+    { "movementName": "Overhead Tricep Extension", "sets": 3, "reps": 12, "block": 2 },
+    { "movementName": "Plank", "sets": 3, "duration": 30 }
   ]
 }
 ```
 
-**Block grouping**: Same `block` number = exercises alternate (supersets).
+Each exercise requires `movementName` and either `sets` or `setDetails`. Use
+`reps` for rep-based movements and `duration` in seconds for duration-based
+movements. `weight` is the percentage of the movement's one-rep maximum. Give
+exercises the same `block` number to alternate them as a superset.
+`block` must be a non-negative integer. `isWarmup` marks all of an exercise's
+sets as warm-up sets unless an individual `setDetails[].warmUp` overrides it.
 
-**Duration-based exercises** (planks, etc.): Use `duration` instead of `reps`:
+Use `setDetails` when sets have different programming. It is authoritative when
+present, and its length defines the set count. If `sets` is also present, it must
+match `setDetails.length`. Each entry accepts:
+
 ```json
-{ "movementName": "Plank", "sets": 3, "duration": 30 }
+{
+  "reps": 8,
+  "weight": 75,
+  "warmUp": false,
+  "dropSet": false,
+  "burnout": false,
+  "description": "Optional set note"
+}
+```
+
+For a duration-based movement, use `"duration": 30` instead of `reps`.
+
+Specify either `reps` or `duration` in an entry, never both. Every field except
+the movement's goal (`reps` or `duration`) is optional. Exercise-level `weight`
+is the default for entries that omit `weight`; an explicit per-set `0` is
+preserved.
+
+For example, this non-uniform ramp programs 12, 8, and 5 reps at 50%, 75%, and
+90%, while preserving set flags and descriptions:
+
+```json
+{
+  "title": "Ramp Day",
+  "description": "Non-uniform programming",
+  "exercises": [
+    {
+      "movementName": "Bench Press",
+      "setDetails": [
+        { "reps": 12, "weight": 50, "warmUp": true, "description": "Warm-up" },
+        { "reps": 8, "weight": 75, "dropSet": true, "description": "Working set" },
+        { "reps": 5, "weight": 90, "burnout": true, "description": "Top set" }
+      ]
+    }
+  ]
+}
 ```
 
 ## Combining with Oura

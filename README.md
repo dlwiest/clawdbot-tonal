@@ -1,32 +1,3 @@
-> ## ⚠️ Deprecated — do not use
->
-> **This skill has two bugs that silently corrupt your custom workouts.** They are
-> fixed in the projects below, but not here.
->
-> 1. Editing a workout flattens its set programming. `scripts/tonal.mjs` rebuilds
->    every set from the first set of each exercise, so a 12/8/5 ramp at 50/75/90%
->    saves back as 12/12/12 at 50/50/50, and `warmUp` / `dropSet` / `burnout`
->    flags and per-set descriptions are erased. This happens even if you change
->    nothing.
-> 2. Using the same movement twice in one block deletes half the sets. Set groups
->    are keyed by movement id, so a pyramid or drop set collapses two exercises
->    into one on the next save.
->
-> Both were reproduced against a real Tonal account. The write path reports
-> success either way, so the loss is invisible until you look at the workout.
->
-> **Use instead:**
->
-> - [`ts-tonal-mcp`](https://github.com/dlwiest/ts-tonal-mcp) — MCP server for
->   Claude Desktop, Claude Code, or any MCP client
-> - [`hermes-tonal`](https://github.com/dlwiest/hermes-tonal) — Hermes Agent
->   integration: registers the MCP server plus a companion skill
-> - [`@dlwiest/ts-tonal-client`](https://www.npmjs.com/package/@dlwiest/ts-tonal-client)
->   — the underlying TypeScript client, if you are building your own thing
->
-> This repository stays up for reference and for anyone who linked to it. It is
-> not maintained.
-
 # clawdbot-tonal
 
 Clawdbot skill for talking to your Tonal — muscle readiness, workout history, the works.
@@ -88,20 +59,69 @@ node scripts/tonal.mjs search "bench press"
 
 ## Creating workouts
 
+Workout files for `create` and `update` use this JSON format:
+
 ```json
 {
   "title": "Push Day",
   "description": "Chest and triceps",
   "exercises": [
     { "movementName": "Bench Press", "sets": 4, "reps": 8, "weight": 80 },
-    { "movementName": "Incline Chest Press", "sets": 3, "reps": 10 },
     { "movementName": "Tricep Pushdown", "sets": 3, "reps": 12, "block": 2 },
-    { "movementName": "Overhead Tricep Extension", "sets": 3, "reps": 12, "block": 2 }
+    { "movementName": "Overhead Tricep Extension", "sets": 3, "reps": 12, "block": 2 },
+    { "movementName": "Plank", "sets": 3, "duration": 30 }
   ]
 }
 ```
 
-Same `block` number = exercises alternate (supersets).
+Each exercise requires `movementName` and either `sets` or `setDetails`. Use
+`reps` for rep-based movements and `duration` in seconds for duration-based
+movements. `weight` is the percentage of the movement's one-rep maximum. Give
+exercises the same `block` number to alternate them as a superset.
+`block` must be a non-negative integer. `isWarmup` marks all of an exercise's
+sets as warm-up sets unless an individual `setDetails[].warmUp` overrides it.
+
+Use `setDetails` when sets have different programming. It is authoritative when
+present, and its length defines the set count. If `sets` is also present, it must
+match `setDetails.length`. Each entry accepts:
+
+```json
+{
+  "reps": 8,
+  "weight": 75,
+  "warmUp": false,
+  "dropSet": false,
+  "burnout": false,
+  "description": "Optional set note"
+}
+```
+
+For a duration-based movement, use `"duration": 30` instead of `reps`.
+
+Specify either `reps` or `duration` in an entry, never both. Every field except
+the movement's goal (`reps` or `duration`) is optional. Exercise-level `weight`
+is the default for entries that omit `weight`; an explicit per-set `0` is
+preserved.
+
+For example, this non-uniform ramp programs 12, 8, and 5 reps at 50%, 75%, and
+90%, while preserving set flags and descriptions:
+
+```json
+{
+  "title": "Ramp Day",
+  "description": "Non-uniform programming",
+  "exercises": [
+    {
+      "movementName": "Bench Press",
+      "setDetails": [
+        { "reps": 12, "weight": 50, "warmUp": true, "description": "Warm-up" },
+        { "reps": 8, "weight": 75, "dropSet": true, "description": "Working set" },
+        { "reps": 5, "weight": 90, "burnout": true, "description": "Top set" }
+      ]
+    }
+  ]
+}
+```
 
 ## Dependencies
 

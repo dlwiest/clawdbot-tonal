@@ -15,6 +15,6 @@
   "author": "dlwiest",
   "license": "ISC",
   "dependencies": {
-    "@dlwiest/ts-tonal-client": "^0.1.1"
+    "@dlwiest/ts-tonal-client": "^0.5.1"
   }
 }
