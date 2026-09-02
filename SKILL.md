@@ -5,6 +5,15 @@ description: Access Tonal workout data (muscle readiness, workout history, stats
 
 # Tonal Integration
 
+> **DEPRECATED — do not use this skill to create or edit workouts.**
+> `scripts/tonal.mjs` silently corrupts custom workouts: editing one flattens
+> per-set rep/weight ramps and erases warmUp/dropSet/burnout flags and set
+> descriptions, and using the same movement twice in one block deletes half the
+> sets. Both are fixed in
+> [`ts-tonal-mcp`](https://github.com/dlwiest/ts-tonal-mcp) and
+> [`hermes-tonal`](https://github.com/dlwiest/hermes-tonal). The read-only
+> commands (readiness, stats, workouts, movements) are unaffected.
+
 Full port of ts-tonal-mcp functionality. Fetch fitness metrics, manage workouts, browse movements.
 
 ## Quick Reference
