@@ -131,6 +131,7 @@ For example, this non-uniform ramp programs 12, 8, and 5 reps at 50%, 75%, and
 
 - [ts-tonal-mcp](https://github.com/dlwiest/ts-tonal-mcp) — MCP server version for Claude Desktop/Code
 - [ts-tonal-client](https://github.com/dlwiest/ts-tonal-client) — The underlying TypeScript client
+- [hermes-tonal](https://github.com/dlwiest/hermes-tonal) — Hermes Agent integration, if you have moved off Clawdbot/OpenClaw
 
 ## License
 
